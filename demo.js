@@ -1,4 +1,7 @@
 
+
+//kokat se zbudi čez noč, teža več kot 15kg v 2 mescih, glukoza 126 mg/dL dvakrat
+
 var baseUrl = 'https://rest.ehrscape.com/rest/v1';
 var queryUrl = baseUrl + '/query';
 
@@ -94,12 +97,8 @@ function dodajMeritveVitalnihZnakov() {
 
 	var ehrId = $("#dodajVitalnoEHR").val();
 	var datumInUra = $("#dodajVitalnoDatumInUra").val();
-	var telesnaVisina = $("#dodajVitalnoTelesnaVisina").val();
 	var telesnaTeza = $("#dodajVitalnoTelesnaTeza").val();
-	var telesnaTemperatura = $("#dodajVitalnoTelesnaTemperatura").val();
-	var sistolicniKrvniTlak = $("#dodajVitalnoKrvniTlakSistolicni").val();
-	var diastolicniKrvniTlak = $("#dodajVitalnoKrvniTlakDiastolicni").val();
-	var nasicenostKrviSKisikom = $("#dodajVitalnoNasicenostKrviSKisikom").val();
+	var krvniSladkor = $("#dodajVitalnoKrvniSladkor").val();
 	var merilec = $("#dodajVitalnoMerilec").val();
 
 	if (!ehrId || ehrId.trim().length == 0) {
@@ -109,17 +108,12 @@ function dodajMeritveVitalnihZnakov() {
 		    headers: {"Ehr-Session": sessionId}
 		});
 		var podatki = {
-			// Preview Structure: https://rest.ehrscape.com/rest/v1/template/Vital%20Signs/example
+			///Preview Structure: https://rest.ehrscape.com/rest/v1/template/Vital%20Signs/example
 		    "ctx/language": "en",
 		    "ctx/territory": "SI",
 		    "ctx/time": datumInUra,
-		    "vital_signs/height_length/any_event/body_height_length": telesnaVisina,
 		    "vital_signs/body_weight/any_event/body_weight": telesnaTeza,
-		   	"vital_signs/body_temperature/any_event/temperature|magnitude": telesnaTemperatura,
-		    "vital_signs/body_temperature/any_event/temperature|unit": "°C",
-		    "vital_signs/blood_pressure/any_event/systolic": sistolicniKrvniTlak,
-		    "vital_signs/blood_pressure/any_event/diastolic": diastolicniKrvniTlak,
-		    "vital_signs/indirect_oximetry:0/spo2|numerator": nasicenostKrviSKisikom
+		    "vital_signs/blood_sugar:0/spo2|numerator": krvniSladkor
 		};
 		var parametriZahteve = {
 		    "ehrId": ehrId,
@@ -161,14 +155,14 @@ function preberiMeritveVitalnihZnakov() {
 	    	success: function (data) {
 				var party = data.party;
 				$("#rezultatMeritveVitalnihZnakov").html("<br/><span>Pridobivanje podatkov za <b>'" + tip + "'</b> bolnika <b>'" + party.firstNames + " " + party.lastNames + "'</b>.</span><br/><br/>");
-				if (tip == "telesna temperatura") {
+				if (tip == "krvni sladkor") {
 					$.ajax({
-					    url: baseUrl + "/view/" + ehrId + "/" + "body_temperature",
+					    url: baseUrl + "/view/" + ehrId + "/" + "blood_sugar",
 					    type: 'GET',
 					    headers: {"Ehr-Session": sessionId},
 					    success: function (res) {
 					    	if (res.length > 0) {
-						    	var results = "<table class='table table-striped table-hover'><tr><th>Datum in ura</th><th class='text-right'>Telesna temperatura</th></tr>";
+						    	var results = "<table class='table table-striped table-hover'><tr><th>Datum in ura</th><th class='text-right'>Krvni Sladkor</th></tr>";
 						        for (var i in res) {
 						            results += "<tr><td>" + res[i].time + "</td><td class='text-right'>" + res[i].temperature + " " 	+ res[i].unit + "</td>";
 						        }
@@ -205,7 +199,7 @@ function preberiMeritveVitalnihZnakov() {
 							console.log(JSON.parse(err.responseText).userMessage);
 					    }
 					});					
-				} else if (tip == "telesna temperatura AQL") {
+				} else if (tip == "krvni sladkor AQL") {
 					var AQL = 
 						"select " +
     						"t/data[at0002]/events[at0003]/time/value as cas, " +
@@ -221,7 +215,7 @@ function preberiMeritveVitalnihZnakov() {
 					    type: 'GET',
 					    headers: {"Ehr-Session": sessionId},
 					    success: function (res) {
-					    	var results = "<table class='table table-striped table-hover'><tr><th>Datum in ura</th><th class='text-right'>Telesna temperatura</th></tr>";
+					    	var results = "<table class='table table-striped table-hover'><tr><th>Datum in ura</th><th class='text-right'>Krvni Sladkor</th></tr>";
 					    	if (res) {
 					    		var rows = res.resultSet;
 						        for (var i in rows) {
@@ -230,7 +224,7 @@ function preberiMeritveVitalnihZnakov() {
 						        results += "</table>";
 						        $("#rezultatMeritveVitalnihZnakov").append(results);
 					    	} else {
-					    		$("#preberiMeritveVitalnihZnakovSporocilo").html("<span class='obvestilo label label-warning fade-in'>Ni podatkov!</span>");
+					    		$(preberiMeritveVitalnihZnakovSporocilo").html("<span class='obvestilo label label-warning fade-in'>Ni podatkov!</span>");
 					    	}
 
 					    },
